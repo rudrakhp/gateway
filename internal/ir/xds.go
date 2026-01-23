@@ -1027,8 +1027,8 @@ type EnvoyExtensionFeatures struct {
 	ExtProcs []ExtProc `json:"extProcs,omitempty" yaml:"extProcs,omitempty"`
 	// Wasm extensions
 	Wasms []Wasm `json:"wasms,omitempty" yaml:"wasms,omitempty"`
-	// Lua extensions
-	Luas []Lua `json:"luas,omitempty" yaml:"luas,omitempty"`
+	// Lua extension (combined from all Lua scripts attached to the route)
+	Lua *Lua `json:"lua,omitempty" yaml:"lua,omitempty"`
 }
 
 // UnstructuredRef holds unstructured data for an arbitrary k8s resource introduced by an extension

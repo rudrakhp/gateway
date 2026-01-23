@@ -122,31 +122,31 @@ func newOrderedHTTPFilter(filter *hcmv3.HttpFilter) *OrderedHTTPFilter {
 	case isFilterType(filter, egv1a1.EnvoyFilterBuffer):
 		order = 10
 	case isFilterType(filter, egv1a1.EnvoyFilterLua):
-		order = 11 + mustGetFilterIndex(filter.Name)
+		order = 11
 	case isFilterType(filter, egv1a1.EnvoyFilterExtProc):
-		order = 100 + mustGetFilterIndex(filter.Name)
+		order = 12 + mustGetFilterIndex(filter.Name)
 	case isFilterType(filter, egv1a1.EnvoyFilterWasm):
-		order = 200 + mustGetFilterIndex(filter.Name)
+		order = 100 + mustGetFilterIndex(filter.Name)
 	case isFilterType(filter, egv1a1.EnvoyFilterRBAC):
-		order = 301
+		order = 201
 	case isFilterType(filter, egv1a1.EnvoyFilterLocalRateLimit):
-		order = 302
+		order = 202
 	case isFilterType(filter, egv1a1.EnvoyFilterRateLimit):
-		order = 303
+		order = 203
 	case isFilterType(filter, egv1a1.EnvoyFilterGRPCWeb):
-		order = 304
+		order = 204
 	case isFilterType(filter, egv1a1.EnvoyFilterGRPCStats):
-		order = 305
+		order = 205
 	case isFilterType(filter, egv1a1.EnvoyFilterCustomResponse):
-		order = 306
+		order = 206
 	case isFilterType(filter, egv1a1.EnvoyFilterCredentialInjector):
-		order = 307
+		order = 207
 	case isFilterType(filter, egv1a1.EnvoyFilterCompressor):
-		order = 308
+		order = 208
 	case isFilterType(filter, egv1a1.EnvoyFilterDynamicForwardProxy):
-		order = 309
+		order = 209
 	case isFilterType(filter, egv1a1.EnvoyFilterRouter):
-		order = 310
+		order = 210
 	}
 
 	return &OrderedHTTPFilter{

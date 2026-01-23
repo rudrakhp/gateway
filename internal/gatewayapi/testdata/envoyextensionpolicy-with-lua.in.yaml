@@ -67,8 +67,12 @@ envoyextensionpolicies:
     lua:
     - type: Inline
       inline: "function envoy_on_request(request_handle)
-      request_handle:logInfo('Goodbye.')
+      request_handle:logInfo('Hello.')
       end"
+    - type: Inline
+      inline: "function envoy_on_response(response_handle)
+    response_handle:logWarn('Goodbye.')
+    end"
 - apiVersion: gateway.envoyproxy.io/v1alpha1
   kind: EnvoyExtensionPolicy
   metadata:

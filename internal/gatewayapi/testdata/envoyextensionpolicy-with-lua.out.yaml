@@ -44,7 +44,10 @@ envoyExtensionPolicies:
     namespace: envoy-gateway
   spec:
     lua:
-    - inline: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
+    - inline: function envoy_on_request(request_handle) request_handle:logInfo('Hello.')
+        end
+      type: Inline
+    - inline: function envoy_on_response(response_handle) response_handle:logWarn('Goodbye.')
         end
       type: Inline
     targetRef:
@@ -277,10 +280,10 @@ xdsIR:
             protocol: HTTP
             weight: 1
         envoyExtensions:
-          luas:
-          - Code: function envoy_on_response(response_handle) response_handle:logWarn('Goodbye.')
+          lua:
+            Code: function envoy_on_response(response_handle) response_handle:logWarn('Goodbye.')
               end
-            Name: envoyextensionpolicy/default/policy-for-http-route/lua/0
+            Name: envoyextensionpolicy/default/policy-for-http-route/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:
@@ -312,10 +315,11 @@ xdsIR:
             protocol: HTTP
             weight: 1
         envoyExtensions:
-          luas:
-          - Code: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
-              end
-            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua/0
+          lua:
+            Code: |-
+              function envoy_on_request(request_handle) request_handle:logInfo('Hello.') end
+              function envoy_on_response(response_handle) response_handle:logWarn('Goodbye.') end
+            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:

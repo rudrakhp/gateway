@@ -136,7 +136,7 @@ envoyExtensionPolicies:
       - lastTransitionTime: null
         message: |-
           Wasm: module downloaded from https://www.example.com/non-existent.wasm has checksum 36ed359d2ddef6346c48c9c63ab424db2df51bb19d532e8744bfbbbd6ef0f45a, which does not match: 2d89c4c6ab2a1c615c7696ed37ade9e50654ac70384b5d45100eb08e62130ff4
-          Lua: validation failed for lua body in policy with name envoyextensionpolicy/default/policy-for-httproute-with-invalid-lua-invald-wasm-failopen/lua/0: expected one of envoy_on_request() or envoy_on_response() to be defined
+          Lua: validation failed for combined lua scripts in policy default/policy-for-httproute-with-invalid-lua-invald-wasm-failopen: expected one of envoy_on_request() or envoy_on_response() to be defined
           ExtProc: backend default/backend-not-exist not found.
         reason: Invalid
         status: "False"

@@ -39,7 +39,7 @@ envoyExtensionPolicies:
         sectionName: http
       conditions:
       - lastTransitionTime: null
-        message: "Lua: validation failed for lua body in policy with name envoyextensionpolicy/default/policy-for-http-route/lua/0:
+        message: "Lua: validation failed for combined lua scripts in policy default/policy-for-http-route:
           failed to validate with envoy_on_response: <string>:16: attempt to index
           a non-table object(nil) with key 'lua'\nstack traceback:\n\t<string>:16:
           in function 'envoy_on_response'\n\t<string>:19: in main chunk\n\t[G]: ?."
@@ -291,10 +291,10 @@ xdsIR:
         directResponse:
           statusCode: 500
         envoyExtensions:
-          luas:
-          - Code: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
+          lua:
+            Code: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
               end
-            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua/0
+            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:
@@ -326,10 +326,10 @@ xdsIR:
             protocol: HTTP
             weight: 1
         envoyExtensions:
-          luas:
-          - Code: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
+          lua:
+            Code: function envoy_on_request(request_handle) request_handle:logInfo('Goodbye.')
               end
-            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua/0
+            Name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:

@@ -80,7 +80,7 @@ envoyExtensionPolicies:
       conditions:
       - lastTransitionTime: null
         message: |-
-          Lua: validation failed for lua body in policy with name envoyextensionpolicy/default/policy-for-http-route-2/lua/0: failed to validate with envoy_on_response: <string> line:4(column:9) near 'print':   syntax error
+          Lua: validation failed for combined lua scripts in policy default/policy-for-http-route-2: failed to validate with envoy_on_response: <string> line:4(column:9) near 'print':   syntax error
           .
         reason: Invalid
         status: "False"
@@ -299,8 +299,8 @@ xdsIR:
             protocol: HTTP
             weight: 1
         envoyExtensions:
-          luas:
-          - Code: |
+          lua:
+            Code: |
               local json = require("json")
               function envoy_on_response(response_handle)
                   local content_type = response_handle:headers():get("content-type")
@@ -319,7 +319,7 @@ xdsIR:
                   end
                   return envoy.lua.ResponseStatus.Continue
               end
-            Name: envoyextensionpolicy/default/policy-for-http-route/lua/0
+            Name: envoyextensionpolicy/default/policy-for-http-route/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:

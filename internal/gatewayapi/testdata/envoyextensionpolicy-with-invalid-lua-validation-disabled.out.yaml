@@ -209,15 +209,15 @@ xdsIR:
             protocol: HTTP
             weight: 1
         envoyExtensions:
-          luas:
-          - Code: |
+          lua:
+            Code: |
               function envoy_on_response(response_handle)
                 local value = 10
                 if value > 5
                   print("Value is greater than 5")
                 end
               end
-            Name: envoyextensionpolicy/default/policy-for-http-route/lua/0
+            Name: envoyextensionpolicy/default/policy-for-http-route/lua
         hostname: www.example.com
         isHTTP2: false
         metadata:

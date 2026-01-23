@@ -1130,12 +1130,10 @@ func (in *EnvoyExtensionFeatures) DeepCopyInto(out *EnvoyExtensionFeatures) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.Luas != nil {
-		in, out := &in.Luas, &out.Luas
-		*out = make([]Lua, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
+	if in.Lua != nil {
+		in, out := &in.Lua, &out.Lua
+		*out = new(Lua)
+		(*in).DeepCopyInto(*out)
 	}
 }
 

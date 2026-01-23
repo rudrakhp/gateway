@@ -27,8 +27,8 @@ http:
       name: ""
       prefix: /foo
     envoyExtensions:
-      luas:
-      - code: function envoy_on_request(request_handle)
+      lua:
+        code: function envoy_on_request(request_handle)
           request_handle:logInfo('Goodbye.')
           end
         name: envoyextensionpolicy/default/policy-for-http-route/lua/0
@@ -50,12 +50,8 @@ http:
       name: ""
       prefix: /bar
     envoyExtensions:
-      luas:
-      - code: function envoy_on_response(response_handle)
-          response_handle:logWarn('Goodbye.')
-          end
+      lua:
+        code: |-
+          function envoy_on_response(response_handle) response_handle:logWarn('Goodbye.') end
+          function envoy_on_request(request_handle) request_handle:logInfo('Hello.') end
         name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua/0
-      - code: function envoy_on_response(response_handle)
-          response_handle:logError('Hello.')
-          end
-        name: envoyextensionpolicy/envoy-gateway/policy-for-gateway/lua/1

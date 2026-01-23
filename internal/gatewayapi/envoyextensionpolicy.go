@@ -479,7 +479,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForRoute(
 ) error {
 	var (
 		wasms                             []ir.Wasm
-		luas                              []ir.Lua
+		lua                               *ir.Lua
 		wasmFailOpen, extProcFailOpen     bool
 		wasmError, luaError, extProcError error
 		errs                              error
@@ -506,7 +506,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForRoute(
 			continue
 		}
 
-		if luas, luaError = t.buildLuas(policy, gtwCtx.envoyProxy); luaError != nil {
+		if lua, luaError = t.buildLuas(policy, gtwCtx.envoyProxy); luaError != nil {
 			luaError = perr.WithMessage(luaError, "Lua")
 			errs = errors.Join(errs, luaError)
 		}
@@ -556,7 +556,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForRoute(
 							r.EnvoyExtensions = &ir.EnvoyExtensionFeatures{
 								ExtProcs: extProcs,
 								Wasms:    wasms,
-								Luas:     luas,
+								Lua:      lua,
 							}
 						}
 					}
@@ -585,7 +585,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForGateway(
 	var (
 		extProcs                          []ir.ExtProc
 		wasms                             []ir.Wasm
-		luas                              []ir.Lua
+		lua                               *ir.Lua
 		wasmFailOpen, extProcFailOpen     bool
 		wasmError, luaError, extProcError error
 		errs                              error
@@ -599,7 +599,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForGateway(
 		wasmError = perr.WithMessage(wasmError, "Wasm")
 		errs = errors.Join(errs, wasmError)
 	}
-	if luas, luaError = t.buildLuas(policy, gateway.envoyProxy); luaError != nil {
+	if lua, luaError = t.buildLuas(policy, gateway.envoyProxy); luaError != nil {
 		luaError = perr.WithMessage(luaError, "Lua")
 		errs = errors.Join(errs, luaError)
 	}
@@ -650,7 +650,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForGateway(
 				r.EnvoyExtensions = &ir.EnvoyExtensionFeatures{
 					ExtProcs: extProcs,
 					Wasms:    wasms,
-					Luas:     luas,
+					Lua:      lua,
 				}
 			}
 		}
@@ -669,7 +669,7 @@ func (t *Translator) translateEnvoyExtensionPolicyForGateway(
 func (t *Translator) buildLuas(
 	policy *egv1a1.EnvoyExtensionPolicy,
 	envoyProxy *egv1a1.EnvoyProxy,
-) ([]ir.Lua, error) {
+) (*ir.Lua, error) {
 	if policy == nil {
 		return nil, nil
 	}
@@ -679,42 +679,44 @@ func (t *Translator) buildLuas(
 		return nil, fmt.Errorf("Skipping Lua EnvoyExtensionPolicy as feature is disabled in the Gateway")
 	}
 
-	luaIRList := make([]ir.Lua, 0, len(policy.Spec.Lua))
+	if len(policy.Spec.Lua) == 0 {
+		return nil, nil
+	}
 
-	for idx, ep := range policy.Spec.Lua {
-		name := irConfigNameForLua(policy, idx)
-		luaIR, err := t.buildLua(name, policy, ep, envoyProxy)
-		if err != nil {
-			return nil, err
+	// Build combined script directly from all Lua specs in the policy
+	var combinedScript strings.Builder
+	for _, ep := range policy.Spec.Lua {
+		var luaCode *string
+		var err error
+		if ep.Type == egv1a1.LuaValueTypeValueRef {
+			luaCode, err = t.getLuaBodyFromLocalObjectReference(ep.ValueRef, policy.Namespace)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			luaCode = ep.Inline
 		}
-		luaIRList = append(luaIRList, *luaIR)
-	}
-	return luaIRList, nil
-}
-
-func (t *Translator) buildLua(
-	name string,
-	policy *egv1a1.EnvoyExtensionPolicy,
-	lua egv1a1.Lua,
-	envoyProxy *egv1a1.EnvoyProxy,
-) (*ir.Lua, error) {
-	var luaCode *string
-	var err error
-	if lua.Type == egv1a1.LuaValueTypeValueRef {
-		luaCode, err = t.getLuaBodyFromLocalObjectReference(lua.ValueRef, policy.Namespace)
-	} else {
-		luaCode = lua.Inline
-	}
-	if err != nil {
-		return nil, err
+		if luaCode != nil && *luaCode != "" {
+			if combinedScript.Len() > 0 {
+				combinedScript.WriteString("\n")
+			}
+			combinedScript.WriteString(*luaCode)
+		}
 	}
 
-	if err = luavalidator.NewLuaValidator(*luaCode, envoyProxy).Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed for lua body in policy with name %v: %w", name, err)
+	combinedCode := combinedScript.String()
+	if len(combinedCode) == 0 {
+		return nil, nil
 	}
+
+	if err := luavalidator.NewLuaValidator(combinedCode, envoyProxy).Validate(); err != nil {
+		return nil, fmt.Errorf("validation failed for combined lua scripts in policy %s/%s: %w", policy.Namespace, policy.Name, err)
+	}
+
+	name := irConfigNameForLua(policy)
 	return &ir.Lua{
 		Name: name,
-		Code: luaCode,
+		Code: &combinedCode,
 	}, nil
 }
 
@@ -879,11 +881,10 @@ func irConfigNameForExtProc(policy *egv1a1.EnvoyExtensionPolicy, index int) stri
 		strconv.Itoa(index))
 }
 
-func irConfigNameForLua(policy *egv1a1.EnvoyExtensionPolicy, index int) string {
+func irConfigNameForLua(policy *egv1a1.EnvoyExtensionPolicy) string {
 	return fmt.Sprintf(
-		"%s/lua/%s",
-		irConfigName(policy),
-		strconv.Itoa(index))
+		"%s/lua",
+		irConfigName(policy))
 }
 
 func (t *Translator) buildWasms(
